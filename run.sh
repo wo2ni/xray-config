@@ -13,7 +13,7 @@ Purple="\033[1;35m"
 
 #--入站,及其DNS;
 __Inbounds_localhost() {
-    cat << EOF > ${_run_file}
+    cat << EOF #> ${_run_file}
 {
         "log": {
         "loglevel": "warning"
@@ -50,7 +50,7 @@ EOF
 
 #--Mux和DNS;
 __Mux_dns() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
     "mux": {
         "enabled": ${_mux},
         "concurrency": 8
@@ -95,7 +95,7 @@ EOF
 
 #--超级牛力Vless+tcp+xtls出站;
 __Vless_tcp_xtls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
     "outbounds": [
         {
             "protocol": "vless",
@@ -154,7 +154,7 @@ EOF
 
 #--Vless+Websocket+Tls出站;
 __Vless_ws_tls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
      "outbounds": [
         {
             "protocol": "vless",
@@ -214,7 +214,7 @@ EOF
 
 #--Vless+Tcp+Tls出站;
 __Vless_tcp_tls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
       "outbounds": [
         {
             "protocol": "vless",
@@ -271,7 +271,7 @@ EOF
 
 #--Trojan+Tcp+Tls出站;
 __Trojan_tcp_tls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
       "outbounds": [
         {
             "protocol": "trojan",
@@ -323,7 +323,7 @@ EOF
 
 #--Vmess+Websocket+Tls,出站;
 __Vmess_ws_tls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
      "outbounds": [
         {
             "protocol": "vmess",
@@ -383,7 +383,7 @@ EOF
 
 #--Vmess+Tcp+Tls,出站;
 __Vmess_tcp_tls() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
         "outbounds": [
         {
             "protocol": "vmess",
@@ -450,7 +450,7 @@ EOF
 
 #--丢弃色情网站及其IP,广告域名,大陆域名,大陆IP,局域网IP直连;
 __Route_0() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
      "routing": {
         "domainStrategy": "AsIs",
         "rules": [
@@ -554,7 +554,7 @@ EOF
 
 #--大陆ip,域名直连,局域网ip直连,国外域名走代理,只过滤广告域名;
 __Route_1() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
         "routing": {
         "domainStrategy": "AsIs",
         "rules": [
@@ -596,7 +596,7 @@ EOF
 
 #--大陆ip,域名直连,局域网ip直连,国外域名走代理;
 __Route_2() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
         "routing": {
         "domainStrategy": "AsIs",
         "rules": [
@@ -644,7 +644,7 @@ EOF
 
 #--局域网ip,直连,其余全部走代理;
 __Route_3() {
-    cat << EOF >> ${_run_file}
+    cat << EOF #>> ${_run_file}
      "routing": {
         "domainStrategy": "AsIs",
         "rules": [
@@ -674,12 +674,10 @@ __Connection() {
         [yY])
             _in_ip='0.0.0.0'
             readonly _in_ip
-            #__Inbounds_localhost
             ;;
         [Nn])
             _in_ip='127.0.0.1'
             readonly _in_ip
-            #__Inbounds_localhost
             ;;
         *)
             printf "${Red}错误的输入;${Cls}\n"
@@ -708,6 +706,9 @@ __Socks_in() {
                 __Socks_in
             elif (( ${_input_socks}>65535 )); then
                 printf "${Red}端口不能大于${Purple}65535;${Cls}\n"
+                __Socks_in
+            elif (( ${_input_socks}<=1024 )); then
+                printf "${Red}端口不能小于或等于${Purple}1024;${Cls}\n"
                 __Socks_in
             else
                 readonly _input_socks
@@ -742,12 +743,15 @@ __Http_in() {
             elif (( ${_input_http}==${_input_socks} )); then
                 printf "${Red}本地http代理端口和socks端口${Purple}不可重复;${Cls}\n"
                 __Http_in
+            elif (( ${_input_http}<=1024 )); then
+                printf "${Red}端口不能小于或等于${Purple}1024;${Cls}\n"
+                __Http_in
             elif (( ${_input_http}>65535 )); then
                 printf "${Red}端口不能大于${Purple}65535;${Cls}\n"
                 __Http_in
             else
                 readonly _input_http
-                __Inbounds_localhost    #配置本地入站;
+                #__Inbounds_localhost    #配置本地入站;
                 __Menu_0                #MUX & DNS配置;
             fi
             ;;
@@ -779,13 +783,13 @@ __Menu_0() {
         '1')
             _mux='true'
             readonly _mux
-            __Mux_dns           #配置mux dns;
+            #__Mux_dns           #配置mux dns;
             __Service_addr
             ;;
         '2')
             _mux='false'
             readonly _mux       #配置mux dns;
-            __Mux_dns
+            #__Mux_dns
             __Service_addr
             ;;
         '3') 
@@ -858,27 +862,33 @@ __Menu_1() {
             exit 0
             ;;
         '1')
-            __Vless_tcp_xtls
+           _Output='__Vless_tcp_xtls'
+           readonly _Output
             __Menu_2
             ;;
         '2')
-            __Vless_ws_tls
+            _Output='__Vless_ws_tls'
+           readonly _Output
             __Menu_2
             ;;
         '3')
-            __Vless_tcp_tls
+            _Output='__Vless_tcp_tls'
+           readonly _Output
             __Menu_2
             ;;
         '4')
-            __Vmess_ws_tls
+            _Output='__Vmess_ws_tls'
+           readonly _Output
             __Menu_2
             ;;
         '5')
-            __Vmess_tcp_tls
+            _Output='__Vmess_tcp_tls'
+           readonly _Output
             __Menu_2
             ;;
         '6')
-            __Trojan_tcp_tls
+            _Output='__Trojan_tcp_tls'
+           readonly _Output
             __Menu_2
             ;;
         *)
@@ -908,7 +918,8 @@ __Menu_2() {
             exit 0
             ;;
         '1')
-            __Route_0
+            _Routing='__Route_0'
+            __Config_all     #配置文件生成;
             clear
             printf "${Green}"
             xray -config ${_run_file}
@@ -916,7 +927,8 @@ __Menu_2() {
             exit 0
             ;;
         '2')
-            __Route_1
+           _Routing=' __Route_1'
+            __Config_all     #配置文件生成;
             clear
             printf "${$Blue}"
             xray -config ${_run_file}
@@ -924,7 +936,8 @@ __Menu_2() {
             exit 0
             ;;
         '3')
-            __Route_2
+            _Routing='__Route_2'
+            __Config_all     #配置文件生成;
             clear
             printf "${Purple}"
             xray -config ${_run_file}
@@ -932,7 +945,8 @@ __Menu_2() {
             exit 0
             ;;
         '4')
-            __Route_3
+            _Routing='__Route_3'
+            __Config_all     #配置文件生成;
             clear
             printf "${Red}"
             xray -config ${_run_file}
@@ -943,6 +957,14 @@ __Menu_2() {
             clear ; __Menu_2
             ;;
     esac
+}
+
+#--配置文件生成;
+__Config_all() {
+    __Inbounds_localhost > ${_run_file}     #配置本地入站;
+    __Mux_dns >> ${_run_file}               #配置mux dns;
+    ${_Output} >> ${_run_file}                 #出站配置;
+    ${_Routing} >> ${_run_file}                #路由配置;
 }
 
 main() {
@@ -970,7 +992,6 @@ main() {
         __Connection    #共享代理配置;
         __Socks_in      #本地socks代理配置;
         __Menu_0        #MUX DNS配置;
-
     fi
 }
 
